@@ -4,6 +4,9 @@ import google.generativeai as genai
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="GURÚ 2.5 (FUTURO)", page_icon="🍌", layout="wide")
 
+# --- ⚠️ TU LLAVE MAESTRA (Ya puesta) ⚠️ ---
+API_KEY_FIJA = "AIzaSyA3xMsuxhrVNVMKrWV60bXHcwQdH_mk5y0"
+
 # --- ESTILO ---
 st.markdown("""
 <style>
@@ -16,16 +19,12 @@ st.markdown("""
 with st.sidebar:
     st.title("⚙️ CONFIGURACIÓN")
     
-    # 1. API KEY
-    if "GOOGLE_API_KEY" in st.secrets:
-        api_key = st.secrets["GOOGLE_API_KEY"]
-        st.success("✅ Llave Maestra (Secrets)")
-    else:
-        api_key = st.text_input("🔑 Pega tu API Key:", type="password")
+    # 1. AVISO DE LLAVE
+    st.success("✅ Llave Maestra Integrada")
 
     st.markdown("---")
     
-    # 2. SELECTOR DE MODELO (Basado en tu lista)
+    # 2. SELECTOR DE MODELO (Tu lista exclusiva)
     st.subheader("🧠 Elige el Cerebro")
     modelo_elegido = st.selectbox(
         "Modelo:", 
@@ -33,10 +32,11 @@ with st.sidebar:
             "models/gemini-2.5-flash", 
             "models/nano-banana-pro-preview", 
             "models/gemini-2.5-pro",
-            "models/gemini-3-pro-preview"
+            "models/gemini-3-pro-preview",
+            "models/gemini-1.5-flash" # Dejo este por seguridad
         ]
     )
-    st.info(f"Usando motor: {modelo_elegido}")
+    st.info(f"Motor activo: {modelo_elegido}")
 
 # --- INTERFAZ PRINCIPAL ---
 st.title("🍌 GURÚ VIRAL: NEXT GEN")
@@ -52,22 +52,24 @@ with col2:
 
 # --- LÓGICA ---
 if boton:
-    if not api_key or not tema:
-        st.error("⚠️ Falta la API Key o el Tema.")
+    if not tema:
+        st.error("⚠️ Escribe un tema primero.")
     else:
         try:
-            genai.configure(api_key=api_key)
+            # Configuración directa con tu llave
+            genai.configure(api_key=API_KEY_FIJA)
+            
             # Aquí usamos el modelo exacto de tu lista
             model = genai.GenerativeModel(modelo_elegido)
             
-            with st.spinner(f"🧠 {modelo_elegido} está pensando estrategias virales..."):
+            with st.spinner(f"🧠 {modelo_elegido} está diseñando la estrategia..."):
                 
                 # PROMPT MAESTRO
                 prompt = f"""
                 Eres el CEREBRO DE VIRALIDAD (Versión 2.5). Tema: "{tema}".
                 
                 Genera 3 ESCENAS CLAVE para un Short Viral.
-                Formato estricto:
+                Formato estricto de respuesta:
                 
                 ESCENA_1_GUION: [Texto narrador impactante]
                 ESCENA_1_PROMPT: [Prompt visual detallado en inglés, estilo cinematográfico 8k]
@@ -108,7 +110,6 @@ if boton:
                         st.info(guion)
                         
                         # Generar Imagen (Flux)
-                        # Usamos el prompt generado por el modelo 2.5 para pintar en Flux
                         url = f"https://pollinations.ai/p/{prompt.replace(' ', '%20')}?width=720&height=1280&model=flux&seed={num}"
                         st.image(url, use_column_width=True)
                         
@@ -124,4 +125,4 @@ if boton:
 
         except Exception as e:
             st.error(f"❌ Error con el modelo {modelo_elegido}: {e}")
-            st.write("Prueba seleccionando otro modelo en la barra lateral (ej: gemini-2.5-flash).")
+            st.write("👉 Intenta cambiar al modelo 'gemini-2.5-flash' o 'gemini-1.5-flash' en la barra lateral.")
