@@ -32,7 +32,7 @@ if boton:
     else:
         try:
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash') # Usamos Flash porque es muy rápido
+            model = genai.GenerativeModel('gemini-pro') # Usamos Flash porque es muy rápido
             
             with st.spinner("🧠 El Cerebro está diseñando la estrategia..."):
                 # PROMPT MAESTRO
@@ -99,4 +99,5 @@ if boton:
             st.success("✅ ¡Pack Completo! Guarda las imágenes (Click derecho) y graba el audio.")
 
         except Exception as e:
+
             st.error(f"Error de conexión: {e}")
