@@ -4,123 +4,105 @@ from gradio_client import Client
 import time
 
 # --- CONFIGURACIÓN ---
-st.set_page_config(page_title="GURÚ VIDEO MAKER", page_icon="🎥", layout="wide")
-st.markdown("""<style>.stButton>button { background: #E50914; color: white; font-weight: bold; }</style>""", unsafe_allow_html=True)
+st.set_page_config(page_title="GURÚ 2.5 BLUEPRINT", page_icon="🧬", layout="wide")
 
-# --- LLAVE MAESTRA INTEGRADA ---
+# --- TU LLAVE MAESTRA ---
 API_KEY_FIJA = "AIzaSyA3xMsuxhrVNVMKrWV60bXHcwQdH_mk5y0"
 
-# --- FUNCIÓN DE VIDEO (LA MAGIA) ---
-def generar_video_gratis(prompt_video):
-    """Conecta con AnimateDiff Lightning en HuggingFace (Gratis)"""
+# --- FUNCIÓN DE VIDEO (ByteDance AnimateDiff) ---
+def generar_video_gratis(prompt):
     try:
-        # Usamos el cliente de Gradio para conectar con el Space gratuito
         client = Client("ByteDance/AnimateDiff-Lightning")
-        
-        # Parámetros mágicos para que funcione rápido
         result = client.predict(
-            prompt_video, # Tu prompt
-            "bad quality, low resolution, static, ugly", # Negative prompt
-            "Film", # Estilo (Base)
-            "1-AnimateDiff-Lightning-4step.ckpt", # Modelo rápido
+            prompt, 
+            "bad quality, low resolution, static, ugly, text, watermark", 
+            "Film", 
+            "1-AnimateDiff-Lightning-4step.ckpt", 
             api_name="/generate_image"
         )
-        return result # Devuelve la ruta del video MP4
-    except Exception as e:
+        return result
+    except:
         return None
 
-# --- INTERFAZ ---
+# --- BASE DE DATOS (NICHOS PDF) ---
+NICHOS = {
+    "💀 Terror / Horror": ["Analog Horror", "Backrooms", "True Crime Sobrenatural", "SCP", "Leyendas Urbanas"],
+    "📜 Historia": ["Batallas Olvidadas", "Inventos Mortales", "Biografías Oscuras", "Mitología", "Secretos Reales"],
+    "🤖 Tecnología": ["Futurismo", "IA fuera de control", "Gadgets Retro", "Hacks", "Ciberseguridad"],
+    "🧠 Psicología": ["Psicología Oscura", "Lenguaje Corporal", "Manipulación", "Datos Curiosos"],
+    "😂 Humor": ["Brainrot", "POV", "Datos Falsos", "Comida Extrema", "Fails"]
+}
+
+ESTILOS = [
+    "Cinematic Realistic 8K (Sora Style)", "Cyberpunk Neón", 
+    "Terror Analogico VHS 90s", "Glitch Digital", "Anime Studio Ghibli",
+    "Stop-Motion Arcilla", "Fotografía Macro Detallada"
+]
+
+TIEMPOS = {
+    "Micro-Short (15s)": "Ritmo Rápido (Grok)",
+    "Viral Standard (60s)": "Narrativa HERC (Sora + Grok)",
+    "Mini-Doc (3 min)": "Storytelling Profundo"
+}
+
+# --- ESTILOS CSS ---
+st.markdown("""<style>.stButton>button { background: linear-gradient(90deg, #FF8C00, #FFD700); color: black; width: 100%; font-weight: bold; font-size: 18px; }</style>""", unsafe_allow_html=True)
+
+# --- BARRA LATERAL ---
 with st.sidebar:
-    st.title("🎥 VIDEO MAKER")
-    st.success("✅ Motor Gemini: Activo")
-    st.info("✅ Motor Video: AnimateDiff (Gratis)")
-    st.warning("⚠️ Nota: El video tarda unos 20-30 segs por escena. Ten paciencia.")
+    st.title("🧬 GURÚ 2.5")
+    st.success("✅ Modelos Next-Gen Cargados")
+    
+    st.subheader("🧠 Motor IA")
+    # AQUÍ ESTÁN TUS MODELOS QUE FUNCIONAN
+    modelo = st.selectbox("Modelo:", [
+        "models/gemini-2.5-flash", 
+        "models/gemini-2.0-flash-exp",
+        "models/nano-banana-pro-preview"
+    ])
+    st.info(f"Motor: {modelo}")
+    
+    st.markdown("---")
+    st.subheader("🎥 Configuración Visual")
+    # INTERRUPTOR DE VIDEO
+    activar_video = st.checkbox("Generar VIDEO con movimiento", value=False, help="Actívalo para generar MP4 (Tarda +30s). Desactívalo para imágenes instantáneas.")
+    if activar_video:
+        st.warning("⚠️ Modo Video: Más lento pero con movimiento.")
+    else:
+        st.info("⚡ Modo Foto: Instantáneo.")
 
-st.title("🎥 GURÚ: TEXTO A VIDEO (GRATIS)")
-st.markdown("Genera guiones virales y **VIDEOS CON MOVIMIENTO REAL** (2-4s) automáticamente.")
+# --- INTERFAZ PRINCIPAL ---
+st.title("🏭 FÁBRICA 2.5: ESTRATEGIA + VIDEO")
 
-# --- ENTRADAS ---
-c1, c2 = st.columns([3, 1])
-with c1:
-    tema = st.text_input("¿De qué trata el video?", placeholder="Ej: Un astronauta caminando en Marte")
-with c2:
-    st.write("")
-    st.write("")
-    boton = st.button("🚀 GENERAR VIDEO PACK")
+c1, c2, c3 = st.columns(3)
+with c1: nicho_sel = st.selectbox("1. Nicho", list(NICHOS.keys()))
+with c2: subnicho_sel = st.selectbox("2. Subnicho", NICHOS[nicho_sel])
+with c3: duracion_sel = st.selectbox("3. Duración", list(TIEMPOS.keys()))
+
+estilo_sel = st.selectbox("4. Estilo Visual", ESTILOS)
+boton = st.button("🚀 GENERAR ESTRATEGIA COMPLETA")
 
 # --- LÓGICA ---
 if boton:
-    if not tema:
-        st.error("Escribe un tema.")
-    else:
-        try:
-            # 1. CEREBRO (GEMINI)
-            genai.configure(api_key=API_KEY_FIJA)
-            # Usamos el modelo Flash porque es el más fiable ahora mismo
-            model = genai.GenerativeModel('gemini-1.5-flash')
+    try:
+        genai.configure(api_key=API_KEY_FIJA)
+        model = genai.GenerativeModel(modelo)
+        
+        with st.spinner(f"🧠 {modelo} consultando Blueprint Maestro..."):
             
-            with st.spinner("🧠 Escribiendo guion y diseñando prompts de video..."):
-                prompt = f"""
-                Eres un Director de Video AI. Tema: "{tema}".
-                Genera 2 ESCENAS CLAVE.
-                
-                Importante: Los PROMPTS DE VIDEO deben ser en Inglés, cortos, directos y describir movimiento.
-                Ejemplo: "A cybernetic cat running in neon rain, 4k, highly detailed".
-                
-                Formato de salida:
-                ESCENA_1_GUION: ...
-                ESCENA_1_PROMPT: ...
-                ESCENA_2_GUION: ...
-                ESCENA_2_PROMPT: ...
-                """
-                respuesta = model.generate_content(prompt).text
-
-            # --- RENDERIZADO ---
-            st.divider()
+            prompt = f"""
+            Eres el Arquitecto Viral (Basado en el documento PDF).
+            Nicho: {nicho_sel} ({subnicho_sel}). Estilo: {estilo_sel}. Duración: {duracion_sel}.
             
-            # Función para procesar cada escena
-            def procesar_escena(col, num):
-                with col:
-                    try:
-                        # Extraer textos
-                        k_g = f"ESCENA_{num}_GUION:"
-                        k_p = f"ESCENA_{num}_PROMPT:"
-                        next_k = f"ESCENA_{num+1}_GUION:"
-                        
-                        start_g = respuesta.find(k_g) + len(k_g)
-                        end_g = respuesta.find(k_p)
-                        guion = respuesta[start_g:end_g].strip()
-                        
-                        start_p = respuesta.find(k_p) + len(k_p)
-                        end_p = respuesta.find(next_k) if num < 2 else len(respuesta)
-                        prompt_video = respuesta[start_p:end_p].strip()
-                        
-                        # Mostrar Texto
-                        st.markdown(f"### 🎬 Escena {num}")
-                        st.info(f"🎙️ {guion}")
-                        st.caption(f"Prompt: {prompt_video}")
-                        
-                        # GENERAR VIDEO
-                        with st.spinner(f"🎥 Renderizando video {num} (Espera...)..."):
-                            video_path = generar_video_gratis(prompt_video)
-                            
-                            if video_path:
-                                st.video(video_path)
-                                st.success("¡Movimiento generado!")
-                            else:
-                                st.error("El servidor de video está saturado. Prueba de nuevo.")
-                                # Fallback a imagen si falla el video
-                                url_img = f"https://pollinations.ai/p/{prompt_video.replace(' ', '%20')}?model=flux"
-                                st.image(url_img, caption="Imagen estática (Fallback)")
-                                
-                    except Exception as e:
-                        st.error(f"Error en escena {num}: {e}")
-
-            col1, col2 = st.columns(2)
+            Genera la estructura completa:
             
-            # Lanzamos las 2 escenas
-            procesar_escena(col1, 1)
-            procesar_escena(col2, 2)
+            [CANAL_NOMBRE]: (Nombre corto y pegadizo)
+            [CANAL_BIO]: (Frase de alto impacto)
+            [LOGO_PROMPT]: (Descripción visual para el logo, simple y vectorial)
             
-        except Exception as e:
-            st.error(f"Error general: {e}")
+            [TITULO_VIDEO]: (Clickbait ético)
+            
+            [ESCENA_1_GUION]: (Inicio impactante)
+            [ESCENA_1_PROMPT]: (Descripción visual detallada en Inglés, corta y directa, estilo {estilo_sel})
+            
+            [ESCENA_2_GUION]: (Desarroll
